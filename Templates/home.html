@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BookMarked - Book Recommender</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  </head>
+  <body>
+    <div class="header-title">BookMarked</div>
+
+    <div class="navbar">
+      <a href="/" class="active">Home</a>
+      <a href="/top-rated">Top Rated</a>
+    </div>
+
+    <div class="search-container">
+      <form class="search-form" action="/recommend" method="POST">
+        <input
+          type="text"
+          name="book_title"
+          class="search-bar"
+          placeholder="Search for books..."
+          required
+          autocomplete="off"
+          id="searchInput"
+        />
+        <button type="submit" class="search-btn">Search</button>
+        <div class="suggestions" id="suggestions"></div>
+        <input type="hidden" name="n_recommendations" value="12" />
+      </form>
+    </div>
+
+    <div class="section-title">Popular Picks</div>
+
+    <div class="book-section">
+      {% if popular_books %}
+        {% for book in popular_books %}
+          <div class="book-card" onclick="searchBook('{{ book.title }}')">
+            <img
+              src="{{ book.image_url }}"
+              alt="{{ book.title }}"
+              onerror="this.src='https://via.placeholder.com/150x200?text=No+Image'"
+            />
+            <div class="book-info">
+              <div class="book-title">{{ book.title }}</div>
+              <div class="book-author">{{ book.author }}</div>
+              <div class="book-rating">
+                ★ {{ book.avg_rating }} ({{ book.num_ratings }} ratings)
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="loading">Loading popular books...</div>
+      {% endif %}
+    </div>
+
+    <script>
+      const searchInput = document.getElementById("searchInput");
+      const suggestions = document.getElementById("suggestions");
+      let debounceTimer;
+
+      searchInput.addEventListener("input", function () {
+        clearTimeout(debounceTimer);
+        const query = this.value.trim();
+
+        if (query.length < 2) {
+          suggestions.style.display = "none";
+          return;
+        }
+
+        debounceTimer = setTimeout(() => {
+          fetch(`/api/search?q=${encodeURIComponent(query)}`)
+            .then((response) => response.json())
+            .then((books) => {
+              if (books.length > 0) {
+                suggestions.innerHTML = books
+                  .map(
+                    (book) =>
+                      `<div class="suggestion-item" onclick="selectSuggestion('${book}')">${book}</div>`
+                  )
+                  .join("");
+                suggestions.style.display = "block";
+              } else {
+                suggestions.style.display = "none";
+              }
+            })
+            .catch((error) => {
+              console.error("Error fetching suggestions:", error);
+              suggestions.style.display = "none";
+            });
+        }, 300);
+      });
+
+      document.addEventListener("click", function (e) {
+        if (!e.target.closest(".search-form")) {
+          suggestions.style.display = "none";
+        }
+      });
+
+      function selectSuggestion(bookTitle) {
+        searchInput.value = bookTitle;
+        suggestions.style.display = "none";
+        searchInput.form.submit();
+      }
+
+      function searchBook(bookTitle) {
+        searchInput.value = bookTitle;
+        searchInput.form.submit();
+      }
+
+      searchInput.form.addEventListener("submit", function (e) {
+        if (searchInput.value.trim() === "") {
+          e.preventDefault();
+          alert("Please enter a book title to search.");
+        }
+      });
+    </script>
+  </body>
+</html>

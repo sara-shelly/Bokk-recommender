@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Recommendations - BookMarked</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  </head>
+  <body>
+    <div class="header-title">BookMarked</div>
+
+    <div class="navbar">
+      <a href="/">Home</a>
+      <a href="/top-rated">Top Rated</a>
+    </div>
+
+    <a href="/" class="back-btn">← Back to Home</a>
+
+    <div class="search-container">
+      <form class="search-form" action="/recommend" method="POST">
+        <input
+          type="text"
+          name="book_title"
+          class="search-bar"
+          placeholder="Search for another book..."
+          value="{{ search_query or '' }}"
+        />
+        <button type="submit" class="search-btn">Search</button>
+        <input type="hidden" name="n_recommendations" value="12" />
+      </form>
+    </div>
+
+    {% if searched_book %}
+    <div class="searched-book">
+      <h2>You searched for:</h2>
+      <div class="searched-book-info">
+        <img
+          src="{{ searched_book.image_url }}"
+          alt="{{ searched_book.title }}"
+          onerror="this.src='https://via.placeholder.com/120x160?text=No+Image'"
+        />
+        <div class="searched-book-details">
+          <h3>{{ searched_book.title }}</h3>
+          <p>by {{ searched_book.author }}</p>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="recommendations-section">
+      {% if recommendations and recommendations|length > 0 %}
+      <div class="section-title">Recommended for You</div>
+      <div class="book-section">
+        {% for book in recommendations %}
+        <div class="book-card" onclick="searchBook('{{ book.title }}')">
+          <img
+            src="{{ book.image_url }}"
+            alt="{{ book.title }}"
+            onerror="this.src='https://via.placeholder.com/180x240?text=No+Image'"
+          />
+          <div class="book-info">
+            <div class="book-title">{{ book.title }}</div>
+            <div class="book-author">{{ book.author }}</div>
+            <div class="similarity-score">
+              {{ (book.similarity_score * 100) | round(1) }}% match
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="no-results">
+        <h2>No recommendations found</h2>
+        <p>Sorry, we couldn't find recommendations for "{{ search_query }}".</p>
+        <div class="suggestions-text">
+          <p>Try searching for:</p>
+          <ul style="list-style: none; padding: 0">
+            <li>• A complete book title</li>
+            <li>• Popular books like "Harry Potter", "The Alchemist", or "To Kill a Mockingbird"</li>
+            <li>• Make sure the spelling is correct</li>
+          </ul>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <script>
+      function searchBook(bookTitle) {
+        const form = document.querySelector(".search-form");
+        const input = form.querySelector('input[name="book_title"]');
+        input.value = bookTitle;
+        form.submit();
+      }
+    </script>
+  </body>
+</html>

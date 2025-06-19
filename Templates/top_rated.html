@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Top Rated Books - BookMarked</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  </head>
+  <body>
+    <div class="header-title">BookMarked</div>
+
+    <div class="navbar">
+      <a href="/">Home</a>
+      <a href="/top-rated" class="active">Top Rated</a>
+    </div>
+
+    <a href="/" class="back-btn">← Back to Home</a>
+
+    <div class="search-container">
+      <form class="search-form" action="/recommend" method="POST">
+        <input
+          type="text"
+          name="book_title"
+          class="search-bar"
+          placeholder="Search for books..."
+        />
+        <button type="submit" class="search-btn">Search</button>
+        <input type="hidden" name="n_recommendations" value="12" />
+      </form>
+    </div>
+
+    <div class="filter-info">
+      <p><strong>Top Rated Books</strong></p>
+      <p>Books with 4.0+ average rating and 100+ reviews</p>
+    </div>
+
+    <div class="section-title">Highest Rated Books</div>
+
+    <div class="book-section">
+      {% if top_books %}
+        {% for book in top_books %}
+        <div class="book-card" onclick="searchBook('{{ book.title }}')">
+          <img
+            src="{{ book.image_url }}"
+            alt="{{ book.title }}"
+            onerror="this.src='https://via.placeholder.com/180x240?text=No+Image'"
+          />
+          <div class="book-info">
+            <div class="book-title">{{ book.title }}</div>
+            <div class="book-author">{{ book.author }}</div>
+            <div class="book-rating">★ {{ book.avg_rating }}</div>
+            <div class="rating-count">{{ book.num_ratings }} ratings</div>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+      <div class="loading">Loading top rated books...</div>
+      {% endif %}
+    </div>
+
+    <script>
+      function searchBook(bookTitle) {
+        const form = document.querySelector(".search-form");
+        const input = form.querySelector('input[name="book_title"]');
+        input.value = bookTitle;
+        form.submit();
+      }
+    </script>
+  </body>
+</html>
